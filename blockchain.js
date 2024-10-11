@@ -55,7 +55,13 @@ class Blockchain {
     }
 
     createTransaction(transaction) {
-        this.pendingTransactionPool.push(transaction);
+        const balance = this.getBalanceOfAddress(transaction.fromAddress);
+        if (balance < transaction.value){
+            console.log('Transaction invalid');
+        } else {
+            this.pendingTransactionPool.push(transaction);
+            // console.log('Transaction valid\n');
+        }
     }
 
     minePendingTransactions(miningRewardAddress) {
@@ -66,6 +72,40 @@ class Blockchain {
         block.mineBlock(this.difficulty);
 
         this.chain.push(block);
+    }
+
+    isBlockchainValid() {
+        for(let i = 1; i < this.chain.length; i++) {
+            const currentBlock = this.chain[i];
+            const previousBlock = this.chain[i - 1];
+
+            if (currentBlock.lastHash !== previousBlock.hash) {
+                return false;
+            }
+
+            if (currentBlock.hash !== currentBlock.calculateBlockHash()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    getBalanceOfAddress(address) {
+        let balance = 0;
+    
+        this.chain.forEach(block => {
+            block.data.forEach(transaction => {
+                if (transaction.fromAddress === address) {
+                    balance -= transaction.value;
+                }
+    
+                if (transaction.toAddress === address) {
+                    balance += transaction.value;
+                }
+            });
+        });
+    
+        return balance;
     }
 
     printBlockchain() {
@@ -96,3 +136,4 @@ bitcoin.createTransaction(new Transactions('address1', 'address3', 10));
 
 bitcoin.minePendingTransactions('address2');
 bitcoin.printBlockchain();
+console.log(`Is Blockchain valid ? ${bitcoin.isBlockchainValid()}`)
