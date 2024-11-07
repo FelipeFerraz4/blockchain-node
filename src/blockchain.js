@@ -127,6 +127,22 @@ class Blockchain {
     return true;
   }
 
+  getTransactionHistory(address) {
+    const history = [];
+
+    this.chain.forEach((block) => {
+      block.data.forEach((transaction) => {
+        if (
+          transaction.fromAddress === address ||
+          transaction.toAddress === address
+        ) {
+          history.push(transaction);
+        }
+      });
+    });
+    return history;
+  }
+
   printBlockchain() {
     this.chain.forEach(block => {
       console.log(`Block\n` +

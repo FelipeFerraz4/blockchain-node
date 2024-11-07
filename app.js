@@ -22,3 +22,11 @@ bitcoin.printBlockchain();
 
 console.log(`Is Blockchain valid ? ${bitcoin.isBlockchainValid()}`);
 
+const history = bitcoin.getTransactionHistory(keyPair1.address);
+
+console.log("\nHistory: ")
+history.forEach((transaction) => {
+  console.log(`   From Address: ${transaction.fromAddress}`);
+  console.log(`   To Address: ${transaction.toAddress}`);
+  console.log(`   Value: ${transaction.value}`);
+});
