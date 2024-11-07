@@ -1,40 +1,7 @@
 import crypto from 'crypto';
-
-class Transactions {
-    constructor(fromAddress, toAddress, value) {
-        this.fromAddress = fromAddress;
-        this.toAddress = toAddress;
-        this.value = value; 
-    }
-} 
-
-class Block {
-    constructor(timestamp, lastHash, data) {
-        this.timestamp = timestamp;
-        this.lastHash = lastHash;
-        this.hash = this.calculateBlockHash();
-        this.data = data;
-        this.nonce = 0;
-    }
-
-    calculateBlockHash() {
-        return crypto.createHash('sha256').update(
-            this.timestamp + this.lastHash + JSON.stringify(this.data) + this.nonce
-        ).digest('hex');
-    }
-
-    formatTimestamp() {
-        const date = new Date(this.timestamp);
-        return date.toISOString();
-    }
-
-    mineBlock(difficulty) {
-        while(this.hash.substring(0, difficulty) !== '0'.repeat(difficulty)){
-            this.nonce++;
-            this.hash = this.calculateBlockHash();
-        }
-    }
-}
+import KeyPair from './keyPair.js';
+import Transactions from './transactions.js';
+import Block from './block.js';
 
 class Blockchain {
     constructor(Address) {
@@ -128,12 +95,4 @@ class Blockchain {
     }
 }
 
-const bitcoin = new Blockchain('address1');
-
-bitcoin.createTransaction(new Transactions('address1', 'address2', 10));
-bitcoin.createTransaction(new Transactions('address1', 'address3', 10));
-
-
-bitcoin.minePendingTransactions('address2');
-bitcoin.printBlockchain();
-console.log(`Is Blockchain valid ? ${bitcoin.isBlockchainValid()}`)
+export default Blockchain;
