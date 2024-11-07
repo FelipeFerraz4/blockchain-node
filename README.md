@@ -36,7 +36,7 @@ Este projeto permite:
 
 Para executar o projeto, basta rodar o seguinte comando:
 ```bash
-    node blockchain.js
+    node app.js
 ```
 
 ## Estrutura de Código
@@ -44,20 +44,7 @@ Para executar o projeto, basta rodar o seguinte comando:
 - **Transactions:** Representa uma transação entre dois endereços (remetente e destinatário), com um valor associado.
 - **Block:** Cada bloco contém um timestamp, hash do bloco anterior, um conjunto de transações e um nonce, que é ajustado até que o hash do bloco atenda à dificuldade da rede.
 - **Blockchain:** Gerencia a cadeia de blocos, incluindo a criação do bloco gênesis, validação da cadeia, e mineração de novos blocos com transações pendentes.
-
-## Exemplo de Uso
-
-Aqui está um exemplo de como criar transações, minerar blocos e consultar o saldo de um endereço:
-
-```javascript
-const blockchain = new Blockchain('address1');
-
-blockchain.createTransaction(new Transactions('address1', 'address2', 10));
-blockchain.createTransaction(new Transactions('address1', 'address3', 20));
-
-blockchain.minePendingTransactions('address1');
-console.log(`Is Blockchain valid ? ${bitcoin.isBlockchainValid()}`)
-```
+- **KeyPair**: Gera um par de chaves criptográficas (pública e privada) usando o algoritmo secp256k1. A chave pública é convertida em um endereço único usando uma combinação de hashes SHA-256 e RIPEMD-160. A classe também permite assinar e verificar transações usando a chave privada para autenticação, garantindo a integridade das transações entre dois endereços.
 
 ## Licença
 
