@@ -41,3 +41,4 @@ history.forEach((transaction) => {
   console.log(`   To Address: ${transaction.toAddress}`);
   console.log(`   Value: ${transaction.value}`);
 });
+
