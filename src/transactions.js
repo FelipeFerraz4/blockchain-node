@@ -1,12 +1,12 @@
 import crypto from "crypto";
 
 class Transactions {
-  constructor(fromAddress, toAddress, value, free = 0) {
+  constructor(fromAddress, toAddress, value, fee = 0) {
     this.fromAddress = fromAddress;
     this.toAddress = toAddress;
     this.value = value;
     this.signature = null;
-    this.fee = free
+    this.fee = fee
   }
 
   signTransaction(privateKey) {

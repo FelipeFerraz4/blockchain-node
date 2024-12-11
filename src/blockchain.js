@@ -4,14 +4,14 @@ import Block from './block.js';
 
 class Blockchain {
   constructor(keyPair) {
-    this.miningReward = 100.0;
-    this.sourceAddress = "0x000000000000000000000000000000000000000000";
-    this.chain = [this.createGenesisBlock(keyPair.privateKey, keyPair.address)];
-    this.difficulty = 4;
-    this.pendingTransactionPool = [];
     this.addressBook = new Map();
     this.balanceBook = new Map();
     this.registerAddress(keyPair.publicKey, keyPair.address);
+    this.miningReward = 100.0;
+    this.sourceAddress = "0x000000000000000000000000000000000000000000";
+    this.difficulty = 4;
+    this.pendingTransactionPool = [];
+    this.chain = [this.createGenesisBlock(keyPair.privateKey, keyPair.address)];
   }
 
   registerAddress(publicKey, address) {
@@ -44,7 +44,7 @@ class Blockchain {
     );
     genesisTransactions.signTransaction(privateKey);
     this.balanceBook.set(miningRewardAddress, this.balanceBook.get(miningRewardAddress) + this.miningReward);
-    return new Block(Date.now(), zeroHash, [genesisTransactions], 0);
+    return new Block(Date.now(), zeroHash, [genesisTransactions], this.balanceBook);
   }
 
   getLastBlock() {
@@ -88,13 +88,14 @@ class Blockchain {
       miningRewardAddress,
       this.miningReward + totalFees
     );
-
+    
     this.updateBalanceBook();
 
     let block = new Block(
       Date.now(),
       this.getLastBlock().hash,
-      this.pendingTransactionPool
+      this.pendingTransactionPool,
+      this.balanceBook
     );
 
     block.mineBlock(this.difficulty);
@@ -106,9 +107,15 @@ class Blockchain {
 
   updateBalanceBook() {
     this.pendingTransactionPool.forEach((transaction) => {
-      totalValueTransaction = transaction.value + transaction.fee;
-      this.balanceBook.set(transaction.fromAddress, this.balanceBook.get(transaction.fromAddress) - totalValueTransaction);
-      this.balanceBook.set(transaction.toAddress, this.balanceBook.get(transaction.toAddress) + totalValueTransaction);
+      this.balanceBook.set(
+        transaction.fromAddress,
+        this.balanceBook.get(transaction.fromAddress) -
+          (transaction.value + transaction.fee)
+      );
+      this.balanceBook.set(
+        transaction.toAddress,
+        this.balanceBook.get(transaction.toAddress) + transaction.value
+      );
     });
   }
 
@@ -116,14 +123,12 @@ class Blockchain {
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i];
       const previousBlock = this.chain[i - 1];
-
       if (currentBlock.timestamp <= previousBlock.timestamp) {
         console.log(
           `Invalid timestamp at block ${i}, ${currentBlock.timestamp} is not greater than previous block's timestamp ${previousBlock.timestamp}`
         );
         return false;
       }
-
       if (currentBlock.lastHash !== previousBlock.hash) {
         return false;
       }
@@ -218,9 +223,15 @@ class Blockchain {
         console.log(`   Value: ${transaction.value}`);
         console.log(`   Fee: ${transaction.fee || 0}`);
         console.log(`   Signature: ${transaction.signature}`);
+        console.log('\n');
       });
 
-      console.log(`\n`);
+    });
+
+    this.balanceBook.forEach((value, key) => {
+      if (key !== this.sourceAddress) {
+        console.log(`Address: ${key} -> Balance: ${value}`);
+      }
     });
   }
 }

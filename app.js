@@ -18,7 +18,7 @@ bitcoin.createTransaction(
   keyPair1.address,
   keyPair2.address,
   10,
-  0.1
+  1
 );
 
 bitcoin.createTransaction(
@@ -26,12 +26,24 @@ bitcoin.createTransaction(
   keyPair1.address,
   keyPair3.address,
   10,
-  0.2
+  2
+);
+
+bitcoin.minePendingTransactions(keyPair1.privateKey, keyPair1.address);
+
+bitcoin.createTransaction(
+  keyPair2.privateKey,
+  keyPair2.address,
+  keyPair3.address,
+  5,
+  2
 );
 
 bitcoin.minePendingTransactions(keyPair1.privateKey, keyPair1.address);
 
 bitcoin.printBlockchain();
+
+console.log("\n");
 
 console.log(`Is Blockchain valid ? ${bitcoin.isBlockchainValid()}`);
 
@@ -42,5 +54,6 @@ history.forEach((transaction) => {
   console.log(`   From Address: ${transaction.fromAddress}`);
   console.log(`   To Address: ${transaction.toAddress}`);
   console.log(`   Value: ${transaction.value}`);
+  console.log(`   Fee: ${transaction.fee || 0}`);
 });
 

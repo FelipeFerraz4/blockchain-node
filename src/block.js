@@ -4,22 +4,21 @@ class Block {
   constructor(timestamp, lastHash, data, balanceBook) {
     this.timestamp = timestamp;
     this.lastHash = lastHash;
-    this.hash = this.calculateBlockHash();
+    this.balanceBook = Array.from(balanceBook.entries()).sort(([a], [b]) => a.localeCompare(b));
     this.data = data;
-    this.balanceBook = balanceBook;
     this.nonce = 0;
+    this.hash = this.calculateBlockHash();
   }
 
   calculateBlockHash() {
-    const balanceBookString = JSON.stringify(Array.from(this.balanceBook.entries()));
     return crypto
       .createHash("sha256")
       .update(
-        this.timestamp + 
-        this.lastHash + 
-        JSON.stringify(this.data) + 
-        this.nonce + 
-        balanceBookString
+        this.timestamp +
+          this.lastHash +
+          JSON.stringify(this.data) +
+          this.nonce +
+          JSON.stringify(this.balanceBook)
       )
       .digest("hex");
   }
