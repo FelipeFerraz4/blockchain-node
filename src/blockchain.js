@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import KeyPair from './keyPair.js';
 import Transactions from './transactions.js';
 import Block from './block.js';
@@ -50,7 +49,7 @@ class Blockchain {
     return this.chain[this.chain.length - 1];
   }
 
-  createTransaction(privateKey, fromAddress, toAddress, value) {
+  createTransaction(privateKey, fromAddress, toAddress, value, fee = 0) {
     if (!this.isValidAddress(fromAddress)) {
       console.log("Transaction invalid: The 'from' address is invalid");
       return;
@@ -67,7 +66,7 @@ class Blockchain {
       return;
     }
 
-    const transaction = new Transactions(fromAddress, toAddress, value);
+    const transaction = new Transactions(fromAddress, toAddress, value, fee);
     transaction.signTransaction(privateKey);
 
     this.pendingTransactionPool.push(transaction);
@@ -76,11 +75,16 @@ class Blockchain {
   minePendingTransactions(privateKey, miningRewardAddress) {
     this.validatePendingTransaction();
 
+    const totalFees = this.pendingTransactionPool.reduce(
+      (acc, transaction) => acc + transaction.fee,
+      0
+    );
+
     this.createTransaction(
       privateKey,
       this.sourceAddress,
       miningRewardAddress,
-      this.miningReward
+      this.miningReward + totalFees
     );
 
     let block = new Block(
@@ -92,6 +96,8 @@ class Blockchain {
     block.mineBlock(this.difficulty);
 
     this.chain.push(block);
+
+    this.pendingTransactionPool = [];
   }
 
   isBlockchainValid() {
@@ -100,7 +106,9 @@ class Blockchain {
       const previousBlock = this.chain[i - 1];
 
       if (currentBlock.timestamp <= previousBlock.timestamp) {
-        console.log(`Invalid timestamp at block ${i}, ${currentBlock.timestamp} is not greater than previous block's timestamp ${previousBlock.timestamp}`);
+        console.log(
+          `Invalid timestamp at block ${i}, ${currentBlock.timestamp} is not greater than previous block's timestamp ${previousBlock.timestamp}`
+        );
         return false;
       }
 
@@ -114,11 +122,13 @@ class Blockchain {
 
       for (const transaction of currentBlock.data) {
         const publicKey = this.addressBook.get(transaction.fromAddress);
-        if (transaction.fromAddress !== this.sourceAddress &&
-            (!publicKey || !transaction.verifyTransaction(publicKey))) {
-              console.log(`Invalid transaction signature in block ${i}`);
-              return false;
-            }
+        if (
+          transaction.fromAddress !== this.sourceAddress &&
+          (!publicKey || !transaction.verifyTransaction(publicKey))
+        ) {
+          console.log(`Invalid transaction signature in block ${i}`);
+          return false;
+        }
       }
     }
     return true;
@@ -131,6 +141,7 @@ class Blockchain {
       block.data.forEach((transaction) => {
         if (transaction.fromAddress === address) {
           balance -= transaction.value;
+          balance -= transaction.fee || 0;
         }
 
         if (transaction.toAddress === address) {
@@ -181,10 +192,11 @@ class Blockchain {
     const validTransactions = [];
     this.pendingTransactionPool.forEach((transaction) => {
       const publicKey = this.addressBook.get(transaction.fromAddress);
+      const totalCost = transaction.value + (transaction.fee || 0);
       if (
         publicKey &&
         transaction.verifyTransaction(publicKey) &&
-        this.getBalanceOfAddress(transaction.fromAddress) >= transaction.value
+        this.getBalanceOfAddress(transaction.fromAddress) >= totalCost
       ) {
         validTransactions.push(transaction);
       } else {
@@ -211,6 +223,8 @@ class Blockchain {
         console.log(`   From Address: ${transaction.fromAddress}`);
         console.log(`   To Address: ${transaction.toAddress}`);
         console.log(`   Value: ${transaction.value}`);
+        console.log(`   Fee: ${transaction.fee || 0}`);
+        console.log(`   Signature: ${transaction.signature}`);
       });
 
       console.log(`\n`);

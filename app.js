@@ -17,14 +17,16 @@ bitcoin.createTransaction(
   keyPair1.privateKey,
   keyPair1.address,
   keyPair2.address,
-  10
+  10,
+  0.1
 );
 
 bitcoin.createTransaction(
   keyPair1.privateKey,
   keyPair1.address,
   keyPair3.address,
-  10
+  10,
+  0.2
 );
 
 bitcoin.minePendingTransactions(keyPair1.privateKey, keyPair1.address);
