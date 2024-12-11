@@ -34,7 +34,10 @@ class KeyPair {
     const sign = crypto.createSign("SHA256");
     sign
       .update(
-        transaction.fromAddress + transaction.toAddress + transaction.value
+        transaction.fromAddress + 
+        transaction.toAddress + 
+        transaction.value + 
+        transaction.fee
       )
       .end();
     transaction.signature = sign.sign(this.privateKey, "hex");
@@ -44,7 +47,10 @@ class KeyPair {
     const verify = crypto.createVerify("SHA256");
     verify
       .update(
-        transaction.fromAddress + transaction.toAddress + transaction.value
+        transaction.fromAddress +
+        transaction.toAddress +
+        transaction.value +
+        transaction.fee
       )
       .end();
     return verify.verify(this.publicKey, transaction.signature, "hex");
