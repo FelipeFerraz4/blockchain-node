@@ -10,6 +10,7 @@ class Blockchain {
     this.difficulty = 4;
     this.pendingTransactionPool = [];
     this.addressBook = new Map();
+    this.balanceBook = new Map();
     this.registerAddress(keyPair.publicKey, keyPair.address);
   }
 
@@ -18,6 +19,7 @@ class Blockchain {
       console.log("Invalid address format");
     } else {
       this.addressBook.set(address, publicKey);
+      this.balanceBook.set(address, 0.0);
     }
   }
 
@@ -40,8 +42,8 @@ class Blockchain {
       miningRewardAddress,
       this.miningReward
     );
-
     genesisTransactions.signTransaction(privateKey);
+    this.balanceBook.set(miningRewardAddress, this.balanceBook.get(miningRewardAddress) + this.miningReward);
     return new Block(Date.now(), zeroHash, [genesisTransactions], 0);
   }
 
@@ -60,8 +62,8 @@ class Blockchain {
       return;
     }
 
-    const balance = this.getBalanceOfAddress(fromAddress);
-    if (balance < value && fromAddress !== this.sourceAddress) {
+    const balance = this.balanceBook.get(fromAddress);
+    if (fromAddress !== this.sourceAddress && balance < value + fee) {
       console.log("Transaction invalid: Insufficient balance");
       return;
     }
@@ -87,6 +89,8 @@ class Blockchain {
       this.miningReward + totalFees
     );
 
+    this.updateBalanceBook();
+
     let block = new Block(
       Date.now(),
       this.getLastBlock().hash,
@@ -98,6 +102,14 @@ class Blockchain {
     this.chain.push(block);
 
     this.pendingTransactionPool = [];
+  }
+
+  updateBalanceBook() {
+    this.pendingTransactionPool.forEach((transaction) => {
+      totalValueTransaction = transaction.value + transaction.fee;
+      this.balanceBook.set(transaction.fromAddress, this.balanceBook.get(transaction.fromAddress) - totalValueTransaction);
+      this.balanceBook.set(transaction.toAddress, this.balanceBook.get(transaction.toAddress) + totalValueTransaction);
+    });
   }
 
   isBlockchainValid() {
@@ -132,25 +144,6 @@ class Blockchain {
       }
     }
     return true;
-  }
-
-  getBalanceOfAddress(address) {
-    let balance = 0;
-
-    this.chain.forEach((block) => {
-      block.data.forEach((transaction) => {
-        if (transaction.fromAddress === address) {
-          balance -= transaction.value;
-          balance -= transaction.fee || 0;
-        }
-
-        if (transaction.toAddress === address) {
-          balance += transaction.value;
-        }
-      });
-    });
-
-    return balance;
   }
 
   isValidAddress(address) {
@@ -196,7 +189,7 @@ class Blockchain {
       if (
         publicKey &&
         transaction.verifyTransaction(publicKey) &&
-        this.getBalanceOfAddress(transaction.fromAddress) >= totalCost
+        this.balanceBook.get(transaction.fromAddress) >= totalCost
       ) {
         validTransactions.push(transaction);
       } else {
