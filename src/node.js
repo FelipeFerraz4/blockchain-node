@@ -114,6 +114,25 @@ class Node {
         }
       });
     }
+
+    resolveConflicts() {
+      let longestChain = this.blockchain.chain;
+      let maxLength = longestChain.length;
+
+      this.peers.forEach(peer => {
+        if (peer.blockchain.chain.length > maxLength && peer.blockchain.isBlockchainValid()) {
+          longestChain = peer.blockchain.chain;
+          maxLength = peer.blockchain.chain.length;
+        }
+      });
+
+      if (longestChain !== this.blockchain.chain) {
+        console.log("Replacing chain with the longest valid chain.");
+        this.blockchain.chain = cloneDeep(longestChain);
+        this.propagateBlockchain(longestChain);
+      }
+    }
+
     
 }
 export default Node;
