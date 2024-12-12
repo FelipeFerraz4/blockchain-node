@@ -86,6 +86,34 @@ class Node {
       this.blockchain.pendingTransactionPool.push(transaction);
       return true;
     }
+
+    updateBalanceBook(block) {
+      block.data.forEach(transaction => {
+        const fromBalance = this.blockchain.balanceBook.get(transaction.fromAddress);
+        this.blockchain.balanceBook.set(
+        transaction.fromAddress,
+        fromBalance - transaction.value - transaction.fee
+        );
+
+        const toBalance = this.blockchain.balanceBook.get(transaction.toAddress);
+        this.blockchain.balanceBook.set(
+        transaction.toAddress,
+        toBalance + transaction.value
+        );
+      });
+    }
+
+    removeTransactionsFromPool(block) {
+      block.data.forEach(transaction => {
+        const transactionIndex = this.blockchain.pendingTransactionPool.findIndex(
+            tx => tx.signature === transaction.signature
+        );
+        
+        if (transactionIndex !== -1) {
+            this.blockchain.pendingTransactionPool.splice(transactionIndex, 1);
+        }
+      });
+    }
     
 }
 export default Node;
