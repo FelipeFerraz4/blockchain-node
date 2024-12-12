@@ -26,6 +26,21 @@ class Node {
         }
     }
 
+    containsTransaction(transactionSignature) {
+      return this.blockchain.pendingTransactionPool.some(
+        transaction => transaction.signature === transactionSignature
+      );
+    }
     
+    broadcastTransaction(transaction) {
+      if (!this.containsTransaction(transaction.signature)) {
+        if (this.receiveTransaction(transaction)) {
+          this.peers.forEach(peer => {
+            peer.broadcastTransaction(transaction);
+          });
+        }
+      }
+    }
+
 }
 export default Node;
