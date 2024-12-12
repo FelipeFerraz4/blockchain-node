@@ -41,6 +41,34 @@ class Node {
         }
       }
     }
+  
+    receiveBlock(block) {
+      if (block.hash !== block.calculateBlockHash()) {
+        console.log("Invalid block hash received!");
+        return false;
+      }
+  
+      const lastBlock = this.blockchain.getLastBlock();
+      if (block.lastHash !== lastBlock.hash) {
+        console.log("Blockchain fork detected!");
+        this.resolveConflicts();
+        return false;
+      }
+  
+      this.blockchain.chain.push(block);
+  
+      if (!this.blockchain.isBlockchainValid()) {
+        console.log("Blockchain invalid after adding block!");
+        this.blockchain.chain.pop();
+        return false;
+      }
+
+      this.updateBalanceBook(block);
+
+      this.removeTransactionsFromPool(block);
+
+      return true;
+    }
 
 }
 export default Node;
