@@ -69,6 +69,23 @@ class Node {
 
       return true;
     }
-
+  
+    receiveTransaction(transaction) {
+      const fromBalance = this.blockchain.balanceBook.get(transaction.fromAddress);
+      if (fromBalance < transaction.value + transaction.fee) {
+        console.log("Insufficient balance for the transaction!");
+        return false;
+      }
+  
+      const publicKey = this.blockchain.addressBook.get(transaction.fromAddress);
+      if (!transaction.verifyTransaction(publicKey)) {
+        console.log("Invalid transaction signature!");
+        return false;
+      }
+  
+      this.blockchain.pendingTransactionPool.push(transaction);
+      return true;
+    }
+    
 }
 export default Node;
