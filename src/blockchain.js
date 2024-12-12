@@ -190,7 +190,7 @@ class Blockchain {
     const validTransactions = [];
     this.pendingTransactionPool.forEach((transaction) => {
       const publicKey = this.addressBook.get(transaction.fromAddress);
-      const totalCost = transaction.value + (transaction.fee || 0);
+      const totalCost = transaction.value + (transaction.fee);
       if (
         publicKey &&
         transaction.verifyTransaction(publicKey) &&
