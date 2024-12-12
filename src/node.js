@@ -133,6 +133,30 @@ class Node {
       }
     }
 
+    propagateBlockchain(newChain) {
+        if (this.synchronizeBlockchain(newChain)) {
+            this.peers.forEach(peer => {
+                if (peer !== this) {
+                    peer.propagateBlockchain(newChain);
+                }
+            });
+        }
+    }
+
+    synchronizeBlockchain(newChain) {
+      if (!this.blockchain.isValidChain(newChain)) {
+        console.log("Cadeia recebida é inválida.");
+        return false;
+      }
+
+      if (newChain.length <= this.blockchain.chain.length) {
+        console.log("Cadeia recebida não é mais longa que a atual.");
+        return false;
+      }
+
+      this.blockchain.chain = cloneDeep(newChain);
+      return true;
+    }
     
 }
 export default Node;
