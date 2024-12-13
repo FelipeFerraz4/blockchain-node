@@ -14,6 +14,7 @@ class Blockchain {
     this.chain = [this.createGenesisBlock(keyPair.privateKey, keyPair.address)];
   }
 
+  // Method to register an address and its associated public key and balance
   registerAddress(publicKey, address) {
     if (!this.isValidAddress(address)) {
       console.log("Invalid address format");
@@ -23,12 +24,14 @@ class Blockchain {
     }
   }
 
+  // Method to create a new key pair (public/private keys) and register the address
   createKeyPair() {
     const keyPair = new KeyPair();
     this.registerAddress(keyPair.publicKey, keyPair.address);
     return keyPair;
   }
 
+  // Method to create the genesis block (first block in the blockchain)
   createGenesisBlock(privateKey, miningRewardAddress) {
     if (!this.isValidAddress(miningRewardAddress)) {
       console.log("Transaction invalid: The address is invalid");
@@ -43,14 +46,24 @@ class Blockchain {
       this.miningReward
     );
     genesisTransactions.signTransaction(privateKey);
-    this.balanceBook.set(miningRewardAddress, this.balanceBook.get(miningRewardAddress) + this.miningReward);
-    return new Block(Date.now(), zeroHash, [genesisTransactions], this.balanceBook);
+    this.balanceBook.set(
+      miningRewardAddress,
+      this.balanceBook.get(miningRewardAddress) + this.miningReward
+    );
+    return new Block(
+      Date.now(),
+      zeroHash,
+      [genesisTransactions],
+      this.balanceBook
+    );
   }
 
+  // Method to get the last block in the chain
   getLastBlock() {
     return this.chain[this.chain.length - 1];
   }
 
+  // Method to create a new transaction
   createTransaction(privateKey, fromAddress, toAddress, value, fee = 0) {
     if (!this.isValidAddress(fromAddress)) {
       console.log("Transaction invalid: The 'from' address is invalid");
@@ -74,6 +87,7 @@ class Blockchain {
     return transaction;
   }
 
+  // Method to mine pending transactions and create a new block
   minePendingTransactions(privateKey, miningRewardAddress) {
     this.validatePendingTransaction();
 
@@ -88,8 +102,8 @@ class Blockchain {
       miningRewardAddress,
       this.miningReward + totalFees
     );
-    
-    const transactions = [...this.pendingTransactionPool, transaction]; 
+
+    const transactions = [...this.pendingTransactionPool, transaction];
 
     const block = new Block(
       Date.now(),
@@ -103,20 +117,7 @@ class Blockchain {
     return block;
   }
 
-  updateBalanceBook(transactions) {
-    transactions.forEach((transaction) => {
-      this.balanceBook.set(
-        transaction.fromAddress,
-        this.balanceBook.get(transaction.fromAddress) -
-          (transaction.value + transaction.fee)
-      );
-      this.balanceBook.set(
-        transaction.toAddress,
-        this.balanceBook.get(transaction.toAddress) + transaction.value
-      );
-    });
-  }
-
+  // Method to validate the entire blockchain
   isBlockchainValid() {
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i];
@@ -149,6 +150,7 @@ class Blockchain {
     return true;
   }
 
+  // Method to check if an address is valid
   isValidAddress(address) {
     const prefix = "0x00";
     if (!address.startsWith(prefix)) {
@@ -168,6 +170,7 @@ class Blockchain {
     return true;
   }
 
+  // Method to get the transaction history of an address
   getTransactionHistory(address) {
     const history = [];
 
@@ -184,11 +187,12 @@ class Blockchain {
     return history;
   }
 
+  // Method to validate pending transactions (verifying signatures and balance)
   validatePendingTransaction() {
     const validTransactions = [];
     this.pendingTransactionPool.forEach((transaction) => {
       const publicKey = this.addressBook.get(transaction.fromAddress);
-      const totalCost = transaction.value + (transaction.fee);
+      const totalCost = transaction.value + transaction.fee;
       if (
         publicKey &&
         transaction.verifyTransaction(publicKey) &&
@@ -204,6 +208,7 @@ class Blockchain {
     this.pendingTransactionPool = validTransactions;
   }
 
+  // Method to print the details of the entire blockchain
   printBlockchain() {
     this.chain.forEach((block) => {
       console.log(
@@ -221,9 +226,8 @@ class Blockchain {
         console.log(`   Value: ${transaction.value}`);
         console.log(`   Fee: ${transaction.fee || 0}`);
         console.log(`   Signature: ${transaction.signature}`);
-        console.log('\n');
+        console.log("\n");
       });
-
     });
 
     this.balanceBook.forEach((value, key) => {
