@@ -11,6 +11,10 @@ class Node {
     node.peers.add(this);
   }
 
+  createNode() {
+    return new Node(cloneDeep(this.blockchain));
+  }
+
   createTransaction(privateKey, fromAddress, toAddress, value, fee = 0) {
     const transaction = this.blockchain.createTransaction(
       privateKey,
@@ -24,7 +28,7 @@ class Node {
     }
   }
 
-  minePendingTransactions(privateKey, address){
+  minePendingTransactions(privateKey, address) {
     const block = this.blockchain.minePendingTransactions(privateKey, address);
     if (block) {
       this.broadcastBlock(block);
@@ -118,7 +122,8 @@ class Node {
         fromBalance - transaction.value
       );
 
-      const toBalance = this.blockchain.balanceBook.get(transaction.toAddress);
+      const toBalance =
+        this.blockchain.balanceBook.get(transaction.toAddress) || 0;
       this.blockchain.balanceBook.set(
         transaction.toAddress,
         toBalance + transaction.value
@@ -139,48 +144,41 @@ class Node {
   }
 
   resolveConflicts() {
-    let longestChain = this.blockchain.chain;
-    let maxLength = longestChain.length;
+    let longestBlockchain = this.blockchain;
+    let maxLength = this.blockchain.chain.length;
 
     this.peers.forEach((peer) => {
       if (
         peer.blockchain.chain.length > maxLength &&
         peer.blockchain.isBlockchainValid()
       ) {
-        longestChain = peer.blockchain.chain;
+        longestBlockchain = peer.blockchain;
         maxLength = peer.blockchain.chain.length;
       }
     });
 
-    if (longestChain !== this.blockchain.chain) {
+    if (longestBlockchain !== this.blockchain) {
       console.log("Replacing chain with the longest valid chain.");
-      this.blockchain.chain = cloneDeep(longestChain);
-      this.propagateBlockchain(longestChain);
+      this.propagateBlockchain(longestBlockchain);
     }
   }
 
-  propagateBlockchain(newChain) {
-    if (this.synchronizeBlockchain(newChain)) {
+  propagateBlockchain(longestBlockchain) {
+    if (this.synchronizeBlockchain(longestBlockchain)) {
       this.peers.forEach((peer) => {
         if (peer !== this) {
-          peer.propagateBlockchain(newChain);
+          peer.propagateBlockchain(longestBlockchain);
         }
       });
     }
   }
 
-  synchronizeBlockchain(newChain) {
-    if (!this.blockchain.isValidChain(newChain)) {
-      console.log("Cadeia recebida é inválida.");
+  synchronizeBlockchain(longestBlockchain) {
+    if (longestBlockchain.chain.length <= this.blockchain.chain.length) {
       return false;
     }
 
-    if (newChain.length <= this.blockchain.chain.length) {
-      console.log("Cadeia recebida não é mais longa que a atual.");
-      return false;
-    }
-
-    this.blockchain.chain = cloneDeep(newChain);
+    this.blockchain = cloneDeep(longestBlockchain);
     return true;
   }
 }

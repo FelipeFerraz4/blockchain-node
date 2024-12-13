@@ -101,10 +101,6 @@ class Blockchain {
     block.mineBlock(this.difficulty);
 
     return block;
-    // this.pendingTransactionPool = [];
-
-    // this.chain.push(block);
-
   }
 
   updateBalanceBook(transactions) {
