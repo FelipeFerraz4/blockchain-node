@@ -6,15 +6,18 @@ class Node {
     this.peers = new Set();
   }
 
+  // Connect this node to another node, establishing a two-way connection
   connectNode(node) {
     this.peers.add(node);
     node.peers.add(this);
   }
 
+  // Create a new node with a copy of the current blockchain
   createNode() {
     return new Node(cloneDeep(this.blockchain));
   }
 
+  // Create a transaction and broadcast it to peers if valid
   createTransaction(privateKey, fromAddress, toAddress, value, fee = 0) {
     const transaction = this.blockchain.createTransaction(
       privateKey,
@@ -28,6 +31,7 @@ class Node {
     }
   }
 
+  // Mine pending transactions and broadcast the newly mined block to peers
   minePendingTransactions(privateKey, address) {
     const block = this.blockchain.minePendingTransactions(privateKey, address);
     if (block) {
@@ -35,10 +39,12 @@ class Node {
     }
   }
 
+  // Check if a block with the given hash exists in the blockchain
   containsBlock(blockHash) {
     return this.blockchain.chain.some((block) => block.hash === blockHash);
   }
 
+  // Broadcast a block to peers if it is not already part of the blockchain
   broadcastBlock(block) {
     if (!this.containsBlock(block.hash)) {
       if (this.receiveBlock(block)) {
@@ -49,12 +55,14 @@ class Node {
     }
   }
 
+  // Check if a transaction with the given signature exists in the pending transaction pool
   containsTransaction(transactionSignature) {
     return this.blockchain.pendingTransactionPool.some(
       (transaction) => transaction.signature === transactionSignature
     );
   }
 
+  // Broadcast a transaction to peers if it is not already in the pending pool
   broadcastTransaction(transaction) {
     if (!this.containsTransaction(transaction.signature)) {
       if (this.receiveTransaction(transaction)) {
@@ -65,6 +73,7 @@ class Node {
     }
   }
 
+  // Receive a block from a peer and validate it before adding it to the blockchain
   receiveBlock(block) {
     if (block.hash !== block.calculateBlockHash()) {
       console.log("Invalid block hash received!");
@@ -93,6 +102,7 @@ class Node {
     return true;
   }
 
+  // Receive a transaction from a peer and validate it before adding it to the pending pool
   receiveTransaction(transaction) {
     const fromBalance = this.blockchain.balanceBook.get(
       transaction.fromAddress
@@ -112,6 +122,7 @@ class Node {
     return true;
   }
 
+  // Update the balance of each address involved in a block's transactions
   updateBalanceBook(block) {
     block.data.forEach((transaction) => {
       const fromBalance = this.blockchain.balanceBook.get(
@@ -131,6 +142,7 @@ class Node {
     });
   }
 
+  // Remove transactions from the pool that are included in a block
   removeTransactionsFromPool(block) {
     block.data.forEach((transaction) => {
       const transactionIndex = this.blockchain.pendingTransactionPool.findIndex(
@@ -143,6 +155,7 @@ class Node {
     });
   }
 
+  // Resolve conflicts by adopting the longest valid blockchain from peers
   resolveConflicts() {
     let longestBlockchain = this.blockchain;
     let maxLength = this.blockchain.chain.length;
@@ -163,6 +176,7 @@ class Node {
     }
   }
 
+  // Propagate the longest valid blockchain to all peers
   propagateBlockchain(longestBlockchain) {
     if (this.synchronizeBlockchain(longestBlockchain)) {
       this.peers.forEach((peer) => {
@@ -173,6 +187,7 @@ class Node {
     }
   }
 
+  // Synchronize the local blockchain with the longest valid blockchain from a peer
   synchronizeBlockchain(longestBlockchain) {
     if (longestBlockchain.chain.length <= this.blockchain.chain.length) {
       return false;
