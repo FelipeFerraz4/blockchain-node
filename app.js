@@ -1,19 +1,28 @@
 import Transactions from "./src/transactions.js";
 import Blockchain from "./src/blockchain.js";
 import KeyPair from "./src/keyPair.js";
+import Node from "./src/node.js";
 
 const keyPair1 = new KeyPair();
-console.log("Public Key: \n", keyPair1.publicKey);
-console.log("Address: \n", keyPair1.address);
 
-console.log("\n");
+console.log("KeyPair1 Address:", keyPair1.address);
 
-const bitcoin = new Blockchain(keyPair1);
+console.log("\nInicializando os blockchains e os nós");
 
-const keyPair2 = bitcoin.createKeyPair();
-const keyPair3 = bitcoin.createKeyPair();
+const blockchain1 = new Blockchain(keyPair1);
 
-bitcoin.createTransaction(
+
+const node1 = new Node(blockchain1);
+const node2 = new Node(blockchain1);
+const node3 = new Node(blockchain1);
+
+const keyPair2 = node1.blockchain.createKeyPair();
+const keyPair3 = node1.blockchain.createKeyPair();
+
+node1.connectNode(node2);
+node2.connectNode(node3);
+
+node1.createTransaction(
   keyPair1.privateKey,
   keyPair1.address,
   keyPair2.address,
@@ -21,17 +30,26 @@ bitcoin.createTransaction(
   1
 );
 
-bitcoin.createTransaction(
+
+node1.createTransaction(
   keyPair1.privateKey,
   keyPair1.address,
   keyPair3.address,
-  10,
+  20,
   2
 );
 
-bitcoin.minePendingTransactions(keyPair1.privateKey, keyPair1.address);
+node1.minePendingTransactions(keyPair1.privateKey, keyPair1.address);
 
-bitcoin.createTransaction(
+console.log("\nEstado dos Node:");
+console.log("\nNode 1:\n");
+node1.blockchain.printBlockchain();
+console.log("\nNode 2:\n");
+node2.blockchain.printBlockchain();
+console.log("\nNode 3:\n");
+node3.blockchain.printBlockchain();
+
+node2.createTransaction(
   keyPair2.privateKey,
   keyPair2.address,
   keyPair3.address,
@@ -39,21 +57,36 @@ bitcoin.createTransaction(
   2
 );
 
-bitcoin.minePendingTransactions(keyPair1.privateKey, keyPair1.address);
+node3.minePendingTransactions(keyPair1.privateKey, keyPair1.address);
 
-bitcoin.printBlockchain();
+console.log("\nEstado dos Node:");
+console.log("\nNode 1:\n");
+node1.blockchain.printBlockchain();
+console.log("\nNode 2:\n");
+node2.blockchain.printBlockchain();
+console.log("\nNode 3:\n");
+node3.blockchain.printBlockchain();
 
-console.log("\n");
+// // Verificar o estado atualizado dos blockchains
+// console.log("\nEstado atualizado dos blockchains:");
+// console.log("Blockchain do nó 1:");
+// blockchain1.printBlockchain();
+// console.log("Blockchain do nó 2:");
+// blockchain2.printBlockchain();
+// console.log("Blockchain do nó 3:");
+// blockchain3.printBlockchain();
 
-console.log(`Is Blockchain valid ? ${bitcoin.isBlockchainValid()}`);
+// // Testar resolução de conflitos
+// console.log("\nForçando um conflito e testando a resolução");
+// blockchain1.chain.pop(); // Remove o último bloco do nó 1 para criar conflito
+// node1.resolveConflicts();
 
-const history = bitcoin.getTransactionHistory(keyPair1.address);
+// console.log("\nEstado dos blockchains após a resolução de conflitos:");
+// console.log("Blockchain do nó 1:");
+// blockchain1.printBlockchain();
+// console.log("Blockchain do nó 2:");
+// blockchain2.printBlockchain();
+// console.log("Blockchain do nó 3:");
+// blockchain3.printBlockchain();
 
-console.log("\nHistory: ");
-history.forEach((transaction) => {
-  console.log(`   From Address: ${transaction.fromAddress}`);
-  console.log(`   To Address: ${transaction.toAddress}`);
-  console.log(`   Value: ${transaction.value}`);
-  console.log(`   Fee: ${transaction.fee || 0}`);
-});
-
+// console.log("\nTestes finalizados!");

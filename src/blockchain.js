@@ -71,7 +71,7 @@ class Blockchain {
     const transaction = new Transactions(fromAddress, toAddress, value, fee);
     transaction.signTransaction(privateKey);
 
-    this.pendingTransactionPool.push(transaction);
+    return transaction;
   }
 
   minePendingTransactions(privateKey, miningRewardAddress) {
@@ -82,31 +82,33 @@ class Blockchain {
       0
     );
 
-    this.createTransaction(
+    const transaction = this.createTransaction(
       privateKey,
       this.sourceAddress,
       miningRewardAddress,
       this.miningReward + totalFees
     );
     
-    this.updateBalanceBook();
+    const transactions = [...this.pendingTransactionPool, transaction]; 
 
-    let block = new Block(
+    const block = new Block(
       Date.now(),
       this.getLastBlock().hash,
-      this.pendingTransactionPool,
+      transactions,
       this.balanceBook
     );
 
     block.mineBlock(this.difficulty);
 
-    this.chain.push(block);
+    return block;
+    // this.pendingTransactionPool = [];
 
-    this.pendingTransactionPool = [];
+    // this.chain.push(block);
+
   }
 
-  updateBalanceBook() {
-    this.pendingTransactionPool.forEach((transaction) => {
+  updateBalanceBook(transactions) {
+    transactions.forEach((transaction) => {
       this.balanceBook.set(
         transaction.fromAddress,
         this.balanceBook.get(transaction.fromAddress) -
