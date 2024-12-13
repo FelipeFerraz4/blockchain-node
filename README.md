@@ -22,9 +22,9 @@ Este projeto permite:
 - Taxas de Transação e Recompensas
 
 ## Relatório de entrega das Sprints
-- [1º Sprint: 07/10/2024 - 11/10/2024]()
-- [2º Sprint: 04/11/2024 - 08/11/2024]()
-- [3º Sprint: 09/12/2024 - 13/12/2024]()
+- [1º Sprint: 07/10/2024 - 11/10/2024](https://github.com/FelipeFerraz4/blockchain-node/tree/main/docs/1st_sprint_report)
+- [2º Sprint: 04/11/2024 - 08/11/2024](https://github.com/FelipeFerraz4/blockchain-node/tree/main/docs/2nd_sprint_report)
+- [3º Sprint: 09/12/2024 - 13/12/2024](https://github.com/FelipeFerraz4/blockchain-node/tree/main/docs/3rd_sprint_report)
 
 ## Pré-requisitos
 - Node.js
